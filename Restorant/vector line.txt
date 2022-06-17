@@ -1,0 +1,121 @@
+ <View style={{marginBottom: 10}}>
+                <ScrollView
+                  horizontal={true}
+                  // alwaysBounceVertical
+                  showsVerticalScrollIndicator>
+                  <VictoryChart theme={VictoryTheme.material}>
+                    <VictoryLine>
+                      {AssignedDevices.map((i: any) => {
+                        return (
+                          // <View
+                          //   style={{
+                          //     borderColor: 'red',
+                          //     backgroundColor: 'red',
+                          //     paddingBottom: 40,
+                          //     marginBottom: 50,
+                          //   }}>
+                          <VictoryLine
+                            // colorScale={'red'}
+                            style={{
+                              data: {stroke: '#c43a31'},
+                              parent: {border: '1px solid #ccc'},
+                            }}
+                            key={i}
+                            data={[{x: i.XAxisValue, y: i.Id}]}
+                            labelComponent={
+                              <VictoryLabel y={250} verticalAnchor={'start'} />
+                            }
+                          />
+                          // </View>
+                        );
+                      })}
+                    </VictoryLine>
+                    <VictoryAxis dependentAxis />
+                    <VictoryAxis
+                      offsetX={260}
+                      // padding={{left: 80, right: 60}}
+                      // width={350}
+                      // padding={{top: -40}}
+                      tickLabelComponent={
+                        <VictoryLabel
+                          style={{padding: -20, fontSize: 8}}
+                          angle={-90}
+                          y={326}
+                        />
+                      }
+                    />
+                  </VictoryChart>
+                </ScrollView>
+                <View>
+                  <VictoryChart theme={VictoryTheme.material}>
+                    {AssignedDevices.map((i: any) => {
+                      return (
+                        <VictoryLine
+                          style={{
+                            data: {stroke: '#c43a31'},
+                            parent: {border: '1px solid #ccc'},
+                          }}
+                          key={i}
+                          // categories={{x: [i.XAxisValue]}}
+                          data={[{x: i.XAxisValue, y: i.Id}]}
+                          // data={[
+                          //   {x: 1, y: 6},
+                          //   {x: 2, y: 5},
+                          //   {x: 3, y: 1},
+                          //   {x: 4, y: 4},
+                          //   {x: 5, y: 2},
+                          // ]}
+                        />
+                      );
+                    })}
+                    <VictoryAxis dependentAxis />
+                    <VictoryAxis
+                      tickLabelComponent={
+                        <VictoryLabel
+                          style={{padding: -20, fontSize: 8}}
+                          angle={-90}
+                          y={326}
+                        />
+                      }
+                    />
+                  </VictoryChart>
+                </View>
+                <View>
+                  <VictoryChart theme={VictoryTheme.material}>
+                    {AssignedDevices.map((i: any, index) => {
+                      console.log(
+                        'AssignedDevices' + JSON.stringify(AssignedDevices),
+                      );
+
+                      // console.log();
+                      return (
+                        <VictoryLine
+                          style={{
+                            data: {stroke: '#c43a31'},
+                            parent: {border: '10px solid #ccc'},
+                          }}
+                          key={index}
+                          data={[{x: i.XAxisValue, y: i.Id}]}
+                        />
+                      );
+                    })}
+                  </VictoryChart>
+                </View>
+                <View>
+                  <VictoryChart theme={VictoryTheme.material}>
+                    <VictoryLine
+                      style={{
+                        data: {stroke: '#c43a31'},
+                        parent: {border: '1px solid #ccc'},
+                      }}
+                      data={[
+                        {x: 1, y: 6},
+                        {x: 2, y: 5},
+                        {x: 3, y: 1},
+                        {x: 4, y: 4},
+                        {x: 5, y: 2},
+                      ]}
+                    />
+                  </VictoryChart>
+                </View>
+              </View>

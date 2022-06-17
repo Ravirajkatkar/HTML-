@@ -1,0 +1,18 @@
+ {/* <VictoryChart theme={VictoryTheme.material}>
+                {AssignedDevices.map((i: any) => {
+                  return (
+                    <VictoryLine
+                      colorScale={'red'}
+                      key={i}
+                      labels={[i.AssignedDevices]}
+                      data={[{x: i.XAxisValue, y: i.Id}]}
+                    />
+                  );
+                })}
+                <VictoryAxis
+                  tickLabelComponent={<VictoryLabel angle={-25} y={320} />}
+                  // labelComponent={
+                  //   <VictoryLabel y={250} verticalAnchor={'start'} />
+                  // }
+                />
+              {/* </VictoryChart> */}

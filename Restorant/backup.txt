@@ -1,0 +1,47 @@
+<KCards
+            elevated={true}
+            style={{
+              backgroundColor: '#fff',
+              marginHorizontal: 21,
+              marginBottom: 20,
+              borderRadius: 10,
+            }}>
+            <View>
+              <LineChart
+                data={{
+                  // labels: [...XAxisData],
+                  // labels: [{...XAxisData}],
+                  // labels: [{XAxisData: any}],
+                  // labels: [{XAxisData}],
+                  labels: [{}],
+
+                  datasets: [
+                    {
+                      // data: [...Id],
+                      // data: [{...Id}],
+                      // data: [{Id: any}],
+                      // data: [{Id}],
+                      data: [{}],
+                    },
+                  ],
+                }}
+                width={318} // from react-native
+                height={400}
+                chartConfig={{
+                  backgroundColor: 'white',
+                  backgroundGradientFrom: 'white',
+                  backgroundGradientTo: 'white',
+                  // decimalPlaces: 2, // optional, defaults to 2dp
+                  color: () => 'black',
+                  style: {
+                    borderRadius: 16,
+                  },
+                }}
+                // bezier
+                style={{
+                  // marginVertical: 8,
+                  borderRadius: 10,
+                }}
+              />
+            </View>
+          </KCards>

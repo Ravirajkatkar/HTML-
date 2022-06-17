@@ -1,0 +1,1109 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { Colors } from '../../../../library/utils/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomHeader from '../../../../library/components/atoms/CustomHeader';
+import BottomRoute from '../../navigation/BottomRoute';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../Store/store';
+import { useTheme } from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
+import PaymentList from './PaymentList'
+import { AddmoneyAction } from '../../../Store/Slice/Customer/Addmoney';
+import { AddPaymentsAction } from '../../../Store/Slice/Customer/Payments';
+
+import { CurrentBalanceAction } from '../../../Store/Slice/Customer/CurrentBalance';
+import {
+  NativeBaseProvider,
+  Box,
+  Input,
+  Radio,
+  Stack,
+  Select,
+  CheckIcon,
+  Center,
+  FormControl,
+  WarningOutlineIcon,
+  Modal,
+  VStack,
+} from 'native-base';
+import { Neomorph } from 'react-native-neomorph-shadows';
+import LayoutConstant from '../LayoutConstant';
+import { SafeAreaView } from 'react-native-safe-area-context';
+// import RazorpayCheckout from 'react-native-razorpay';
+import { RadioButton } from 'react-native-paper';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Dimensions,
+  Button,
+  Linking,
+  Platform,
+  Animated,
+  ScrollView,
+  FlatList,
+  TouchableHighlight,
+  Easing, SectionList,
+} from 'react-native';
+
+import RBSheet from 'react-native-raw-bottom-sheet';
+import AddMoney_Tran from './AddMoney_Tran';
+import ConstHeader from '../ConstHeader';
+import Icon1 from 'react-native-vector-icons/AntDesign';
+import { WebView } from 'react-native-webview';
+
+import { BottomRouteParam } from '../navigation/BottomNavigator';
+
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
+import { StackRouteParam } from '../../navigation/StackRoute';
+import { ToWords } from 'to-words';
+import AButtons from '../../../../library/components/atoms/Buttons/AButton';
+import { KCards } from '../../../../library/components/atoms/KCards';
+import LoadingButtons from '../../../../library/components/atoms/Buttons/LoadingButton';
+
+export default function AddMoney() {
+  const { KColors } = useTheme();
+
+  const toWords = new ToWords();
+  const navigation =
+    useNavigation<NavigationStackProp<StackRouteParam, 'StackRoute'>>();
+  const refRBSheet = useRef();
+  const ref_input1 = useRef<any>();
+
+  const ref = React.useRef(null);
+  const dispatch = useDispatch();
+  const userType = useSelector((state: RootState) => state.Session.LoginType);
+  const loggedInUserId = useSelector(
+    (state: RootState) => state.Session.LoginUserId,
+  );
+  // console.log('iddd',userType);
+  const Addmoney = useSelector(
+    (state: RootState) => state.Addmoney.paymentGatewayListData,
+  );
+  // console.log('money', Addmoney);
+  // console.log('payments list ', Addmoney);
+  const Addpayments = useSelector(
+    (state: RootState) => state.Payments.PostURLParametersData,
+  );
+  const [Amount, setAmount] = useState('');
+  const [AmountWords, setAmountWords] = useState<string>();
+  const [Error, setError] = useState('');
+  const [paygateway, setPayGateway] = useState('');
+  const [SelectKey, setSelectKey] = useState(0);
+  function CountWords(amount: any) {
+    // let words = toWords.convert(amount, { currency: true });
+    // setAmountWords(words)
+    setError('')
+
+    if (amount.length > 0) {
+      let words = toWords.convert(amount, {
+        currency: true,
+        ignoreZeroCurrency: true,
+      });
+      setAmountWords(words);
+    } else {
+      setAmountWords('');
+    }
+
+    setAmount(amount);
+  }
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     console.log('hello');
+  //   }, 1000);
+  //   return () => clearTimeout(timer);
+  // }, []);
+  const [payError, setpayError] = useState('')
+  const [Loading, setLoading] = useState(false)
+  function FinalPayment() {
+    if (Amount.length == 0) {
+      setError('Please Enter Amount Then Go To Proceed')
+      ref_input1.current.focus();
+      return;
+    } else if (paygateway.length == 0) {
+      setpayError('Select Payment Gateway')
+    } else {
+      setLoading(true)
+      const timer = setTimeout(() => {
+        setLoading(false)
+        Addpayments.length == 0
+          ? setError('Please Enter Amount Then Go To Proceed')
+          : navigation.navigate('StackWebView'),
+          setAmount(''),
+          setPayGateway('Choose Payment'),
+          paygateway === 'VTS Money'
+            ? navigation.navigate('Vtspayment')
+            : null;
+      }, 3000);
+      return () => clearTimeout(timer);
+
+    }
+  }
+  const makenewpayment = async (nextValue, index) => {
+    console.log('pay', nextValue);
+    if (Amount.length === 0) {
+      // console.log('Error');
+      setError('Please Enter Amount');
+      ref_input1.current.focus();
+    } else {
+      setSelectKey(index);
+      setPayGateway(nextValue);
+
+
+      const body1 = {
+        ApiToken: 'S1BBWU1PQklMRUFQUElOVEVHUkFUSU9O',
+        loggedInUserId: loggedInUserId,
+        loggedInUserType: userType,
+        rechargeAmount: Amount,
+        selectedDistributorId: '',
+        selectedCustomerId: '',
+        userName: '',
+        password: '',
+        selectedPaymentGateway: nextValue,
+      };
+      dispatch(AddPaymentsAction(body1));
+      setpayError('')
+      setError('');
+    }
+
+
+
+
+    // if (nextValue === 'VTS Money') {
+    //
+    // } else {
+    //   console.log('Failed');
+    // }
+  };
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [username, setUsername] = React.useState('');
+  // console.log(username);
+  const handleChange = text => setValue(text);
+
+  const [HideHeader, setHideHeader] = useState(false);
+  const getData = async () => {
+    // await AsyncStorage.setItem('BottomPage', 'Profile')
+    // // const token = await AsyncStorage.getItem('token')
+    // // const isLoggedIn = await AsyncStorage.getItem('isLoggedIn')
+    // // setisLoggedIn(isLoggedIn)
+    // // console.log(isLoggedIn)
+    if (loggedInUserId !== '') {
+      // console.log('Yogi',loggedInUserId );
+      dispatch(AddmoneyAction(loggedInUserId));
+    }
+  };
+
+  const [Main, setMain] = useState({ MobileNumber: 988989, Name: 'Yogesh' });
+
+  function HandleChange(value) {
+    // setMain({...Main, MobileNumber: value});
+    if (/^\d+$/.test(value) || value === '') {
+      setAmount(value);
+    }
+  }
+  useEffect(() => {
+    // ref_input1.current.focus();
+
+    getData();
+  }, [loggedInUserId]);
+
+
+  const logos = [
+    'sas',
+    'https://cdn.freelogovectors.net/wp-content/uploads/2019/02/payu-logo.png',
+    'https://eshop.vtsgroup.com/image/cache/catalog/logoretina-600x315w.png',
+    'GiMusicalNotes',
+
+    'https://cdn.freelogovectors.net/wp-content/uploads/2019/02/payu-logo.png',
+    'https://www.yenepay.com/images/logo.png',
+
+    'https://cdn.freelogovectors.net/wp-content/uploads/2020/11/razorpay-logo.png',
+  ];
+  const razor = [
+    'https://cdn.freelogovectors.net/wp-content/uploads/2020/11/razorpay-logo.png',
+  ];
+  const paystack = [
+    'https://upload.wikimedia.org/wikipedia/commons/0/0b/Paystack_Logo.png',
+  ];
+  const mpesa = [
+    'https://seeklogo.com/images/M/mpesa-logo-AE44B6F8EB-seeklogo.com.png',
+  ];
+  const payu = [
+    'https://cdn.freelogovectors.net/wp-content/uploads/2019/02/payu-logo.png',
+  ];
+  const vts = [
+    'https://dejamobile.com/wp-content/themes/dejamobile/images/logo.png',
+  ];
+
+  const renderItemView = ({ item, index }: any) => {
+    return (
+      <>
+        {item.Value == 0 ? null : (
+          <View style={{ borderBottomStartRadius: 20,
+            borderBottomEndRadius: 20,
+            borderColor: "#EBE7E6",
+            borderBottomWidth: 2}}>
+          <TouchableOpacity
+            onPress={() => {
+              Amount.length == 0
+                ? setError('please enter amount first')
+                : setPayGateway(item.Text);
+              makenewpayment(item.Text, index);
+            }}
+            style={{
+              flexDirection: "row",
+              padding: 1,
+              alignItems: "center",
+              // justifyContent:'space-between',
+              marginRight:60,
+              borderBottomStartRadius: 20,
+              borderBottomEndRadius: 20,
+              borderColor: "#EBE7E6",
+              // borderBottomWidth: 2
+            }}>
+            <View style={styles.container}>
+              <View style={{ ...styles.item }}>
+
+                <RadioButton
+                  value="first"
+                  status={paygateway === item.Text ? 'checked' : 'unchecked'}
+                  color="orange"
+                  onPress={() => {
+
+                    makenewpayment(item.Text, index);
+                    // setSelectKey(index);
+                  }}
+                />
+
+              </View>
+              <View style={{ justifyContent: 'center', }}>
+                <View style={{ flexDirection: "row" }}>
+                  <Text style={{
+                    ...styles.cardItems
+                  }}>
+                    {item.Text}
+                  </Text>
+
+                </View>
+              </View>
+              {/* <View style={{ ...styles.item, }}>
+                <View style={{ flexDirection: "column" }}>
+                  <Image
+                    style={style.tinyLogo}
+
+                    
+                    source={{
+                      uri: `${item.Value === '7'
+                        ? razor
+                        : null || item.Value === '3'
+                          ? paystack
+                          : null || item.Value === '2'
+                            ? logos[2]
+                            : null || item.Value === '3'
+                              ? logos[3]
+                              : null || item.Value === '4'
+                                ? logos[4]
+                                : null || item.Value === '5'
+                                  ? logos[5]
+                                  : null || item.Value === '6'
+                                    ? mpesa
+                                    : null || item.Value === '1'
+                                      ? payu
+                                      : null
+                        } `,
+                    }}
+                  />
+
+                </View>
+
+              </View> */}
+              <View style={{ ...styles.item, }}>
+                <View style={{ flexDirection: "column" }}>
+                  <Image
+                    style={style.razor}
+                    source={{
+                      uri: `${item.Value === '7'
+                        ? razor
+                        : null}`}} />
+                        <Image
+                    style={style.paystack}
+                    source={{
+                      uri: `${item.Value === '3'
+                      ? paystack
+                      : null}`}} />
+                        <Image
+                    style={style.logos}
+                    source={{
+                      uri: `${item.Value === '2'
+                      ? logos[2]
+                      : null }`}} />
+                        <Image
+                    style={style.logos1}
+                    source={{
+                      uri: `${item.Value === '5'
+                      ? logos[5]
+                      : null}`}} />
+                        <Image
+                    style={style.mpesa}
+                    source={{
+                      uri: `${ item.Value === '6'
+                      ? mpesa
+                      : null}`}} />
+                       <Image
+                    style={style.payu}
+                    source={{
+                      uri: `${  item.Value === '1'
+                      ? payu
+                      : null}`}} />
+                  </View>
+              </View>
+            </View>
+
+          </TouchableOpacity>
+          </View>
+        )
+        }
+      </>
+      // <MemoizedMovie item={item} />
+    );
+    //
+  };
+  const [_showTip, setShowTip] = React.useState(true);
+
+
+  ///Animation of Box
+  let opacity = new Animated.Value(0);
+
+
+  const animate = (easing: any) => {
+    opacity.setValue(0);
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 1200,
+      easing,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const size = opacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 60]
+
+  });
+  const [doAnimation, setAnimation] = useState(false)
+  useEffect(() => {
+    // ref_input1.current.focus();
+    // setAnimation(true)
+    setAnimation(true)
+    animate(Easing.ease)
+    const timer = setTimeout(() => {
+
+
+      setAnimation(false)
+    }, 2000);
+    return () => clearTimeout(timer);
+
+  }, [doAnimation]);
+
+
+
+  const animatedStyles = [
+    style.box,
+    {
+      opacity,
+      width: 100,
+      height: 30
+    }
+  ];
+
+
+  return (
+    <>
+  
+    <LayoutConstant isHome={true} search={false}>
+   
+      <Animated.View
+        style={{
+          // transform: [{ translateY: translateY }],
+          zIndex: 100,
+          elevation: 4,
+        }}>
+        <View
+          style={{
+            // position: 'absolute',
+            top: 0,
+            right: 0,
+            left: 0,
+            height: 45,
+            backgroundColor: 'rgba(238, 238, 238,1)',
+            // borderTopLeftRadius: 15,
+            // borderTopRightRadius: 15,
+
+            borderBottomLeftRadius: 15,
+            borderBottomRightRadius: 15,
+          }}>
+          <Text
+            style={{
+              // fontSize: 20,
+              // color: 'black',
+              fontFamily: 'Roboto-Bold',
+              alignSelf: 'center',
+              color: '#737373',
+              textAlign: 'center',
+              fontSize: 23,
+              // fontWeight: 'bold',
+            }}>
+            Add Money
+          </Text>
+        </View>
+      </Animated.View>
+
+      <ScrollView>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('AddMoney_Tran')}
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+
+        }}>
+
+        {doAnimation && (
+          <View style={{
+            ...style.boxContainer,
+
+            position: 'relative',
+            // right: 40,
+            left: 10
+          }}>
+            <Animated.View style={animatedStyles}>
+              <Text
+                style={{
+                  color: 'black',
+                  fontSize: 12,
+                  fontWeight: 'bold',
+
+
+                  // marginBottom: -20,
+                }}>Transcations ->
+              </Text>
+            </Animated.View>
+          </View>
+        )}
+        <View>
+          <LottieView
+            source={require('../../../../library/assets/loffie/trancation1.json')}
+            autoPlay
+            loop={true}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          // speed={1}
+          // onAnimationFinish={
+          //   () => {
+          //     getData()
+          //   }
+          // }
+          />
+        </View>
+
+
+      </TouchableOpacity>
+      <SafeAreaView style={style.moneyData}>
+        <View style={{ alignSelf: 'center' }}>
+          <Text style={{ color: 'black' }}>You Are Adding</Text>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignSelf: 'center',
+            justifyContent: 'center',
+            alignContent: 'center',
+            alignItems: 'center',
+          }}>
+          {/* <Text style={{ color: 'black' }}>INR</Text> */}
+          {/* <TextInput
+              // style={style.input}
+              placeholder="0"
+              keyboardType="numeric"
+              placeholderTextColor='black'
+              
+            />
+           */}
+          <View>
+            <Text
+              style={{
+                color: Amount.length !== 0 ? 'black' : KColors.Grey500,
+                fontWeight: 'bold',
+                fontSize: 30,
+              }}>
+              INR
+            </Text>
+          </View>
+          <View>
+            <TextInput
+              style={style.input}
+              placeholder="0"
+              ref={ref_input1}
+              keyboardType="numeric"
+              placeholderTextColor={KColors.Grey500}
+              maxLength={12}
+              onChangeText={value => CountWords(value)}
+            />
+          </View>
+        </View>
+        <Text
+          style={{
+            color: 'red',
+            alignSelf: 'center',
+            marginVertical: -12,
+
+            marginBottom: 3,
+          }}>
+          {Error}
+        </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignSelf: 'center',
+            justifyContent: 'center',
+            alignContent: 'center',
+            alignItems: 'center',
+          }}>
+          <Text style={{ color: 'black', textAlign: 'center' }}>{AmountWords}</Text>
+        </View>
+        <View style={{ marginTop: 40 }}>
+          <KCards
+            elevated={true}
+            style={{
+              backgroundColor: '#fff',
+              marginHorizontal: 10,
+              marginTop: 10,
+              borderRadius: 10,
+            }}>
+            <View style={{ justifyContent: 'center', marginTop: '5%', alignItems: 'center' }}>
+              <Text style={{ color: 'black' }}>Pay From</Text>
+            </View>
+            <View>
+              <FlatList
+             
+                data={Addmoney}
+                renderItem={renderItemView}
+                showsVerticalScrollIndicator={false}
+                keyExtractor={item => item.Value}
+                scrollEventThrottle={16}
+
+              // keyExtractor={({item}) => item.id}
+              // ListHeaderComponent={headerComponent}
+              />
+            </View>
+            <Text
+              style={{
+                color: 'red',
+                alignSelf: 'center',
+                marginTop: 10
+              }}>
+              {payError}
+            </Text>
+            <LoadingButtons
+              onPress={() => {
+                FinalPayment()
+              }}
+              title="SUBMIT"
+              buttonStyle={{ alignSelf: 'center', marginTop: '5%', paddingBottom: '5%' }}
+              Loading={Loading}
+            />
+
+          </KCards>
+        </View>
+
+        {/* <View style={{ alignSelf: 'center', marginBottom: 20 }}>
+          <Neomorph
+            inner
+            swapShadows
+            style={{
+              height: 46,
+              width: 330,
+              // backgroundColor: Colors.secondaryBlack,
+              backgroundColor: 'white',
+              shadowRadius: 2,
+              borderRadius: 46,
+              flexDirection: 'row',
+              // justifyContent: 'flex-end',
+              alignContent: 'center',
+              alignItems: 'center',
+              marginTop: 1,
+              paddingTop: 5,
+            }}>
+            <TextInput
+              style={{
+                marginLeft: 30,
+                fontFamily: 'Poppins-Regular',
+                color: Colors.blackText,
+                paddingVertical: 10,
+                width: '60%',
+              }}
+              placeholder="Enter Amount"
+              keyboardType="numeric"
+              maxLength={12}
+              placeholderTextColor={Colors.orange}
+              onChangeText={value => HandleChange(value)}
+            />
+            <View style={{ position: 'absolute', right: 0 }}>
+              <TouchableOpacity
+                onPress={() => refRBSheet.current.open()}
+                style={{
+                  shadowRadius: 0,
+                  borderRadius: 4,
+                  backgroundColor: Colors.orange,
+                  width: 150,
+                  height: 46,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 15,
+                  borderBottomLeftRadius: 0,
+                  borderBottomRightRadius: 15,
+                }}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontFamily: 'Poppins-Regular',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                  }}>
+                  {paygateway}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Neomorph>
+
+        </View>
+        <Text
+          style={{
+            color: 'red',
+            alignSelf: 'center',
+            marginVertical: -12,
+            fontWeight: 'bold',
+            marginBottom: 3,
+          }}>
+          {Error}
+        </Text>
+        <View>
+          <TouchableOpacity style={{ alignSelf: 'center', marginTop: 10 }}>
+            <Neomorph
+              swapShadows
+              style={{
+                shadowRadius: 3,
+                borderRadius: 40,
+                backgroundColor: Colors.orange,
+                width: 150,
+                height: 40,
+                alignItems: 'center',
+
+                flexDirection: 'row',
+
+                justifyContent: 'center',
+              }}>
+              <View style={{}}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontFamily: 'Poppins-Regular',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                  }}
+                  onPress={() => {
+                    Addpayments.length === 0
+                      ? setError('Please Enter Amount Then Go To Proceed')
+                      : navigation.navigate('StackWebView'),
+                      setAmount(''),
+                      setPayGateway('Choose Payment'),
+                      paygateway === 'VTS Money'
+                        ? navigation.navigate('Vtspayment')
+                        : null;
+                  }}>
+                  Proceed
+                </Text>
+              </View>
+            </Neomorph>
+          </TouchableOpacity>
+        </View> */}
+        {/* <RBSheet
+          ref={refRBSheet}
+          height={300}
+          closeOnDragDown={true}
+          closeOnPressMask={true}
+          customStyles={{
+            draggableIcon: {
+              backgroundColor: Colors.orange,
+            },
+            container: {
+              borderTopRightRadius: 40,
+              borderTopLeftRadius: 40,
+              backgroundColor: '#D3D3D3',
+            },
+          }}>
+          <View
+            style={{
+              alignItems: 'center',
+            }}>
+            <Radio.Group
+              name="myRadioGroup"
+              accessibilityLabel="Payment Gateway"
+              value={paygateway}
+              onChange={nextValue => {
+                Amount.length === 0
+                  ? setError('please enter amount first')
+                  : setPayGateway(nextValue);
+                makenewpayment(nextValue);
+              }}>
+              {Addmoney.map((type: any, key: number) =>
+                type.Value === '0' ? null : (
+                  <>
+                    <Radio value={type.Text} my={1} key={key}>
+                      <Image
+                        style={style.tinyLogo}
+                        source={{
+                          uri: `${type.Value === '7'
+                            ? razor
+                            : null || type.Value === '3'
+                              ? paystack
+                              : null || type.Value === '2'
+                                ? logos[2]
+                                : null || type.Value === '3'
+                                  ? logos[3]
+                                  : null || type.Value === '4'
+                                    ? logos[4]
+                                    : null || type.Value === '5'
+                                      ? logos[5]
+                                      : null || type.Value === '6'
+                                        ? mpesa
+                                        : null || type.Value === '1'
+                                          ? payu
+                                          : null
+                            } `,
+                        }}
+                      />
+
+                
+
+                    </Radio>
+
+                  </>
+                ),
+              )}
+            </Radio.Group>
+          </View>
+        </RBSheet>
+        <View style={{marginTop: 30}}>
+          <AddMoney_Tran update={update} Filter={Filter} />
+        </View>
+        </RBSheet> */}
+        {/* <TouchableOpacity style={{
+          ...style.bottomView, backgroundColor: KColors.Grey200,
+
+        }
+          // alignSelf: 'center',
+        }
+          onPress={() => {
+            Addpayments.length === 0
+              ? setError('Please Enter Amount Then Go To Proceed')
+              : navigation.navigate('StackWebView'),
+              setAmount(''),
+              setPayGateway('Choose Payment'),
+              paygateway === 'VTS Money'
+                ? navigation.navigate('Vtspayment')
+                : null;
+          }}>
+          <Neomorph
+            swapShadows
+            style={{
+              shadowRadius: 3,
+              borderRadius: 40,
+              backgroundColor: Colors.orange,
+              width: 150,
+              height: 40,
+              alignItems: 'center',
+
+              flexDirection: 'row',
+
+              justifyContent: 'center',
+            }}>
+            <TouchableOpacity style={{}} >
+              <Text
+                style={{
+                  color: 'black',
+                  fontFamily: 'Poppins-Regular',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                }}
+              >
+                Proceed
+              </Text>
+            </TouchableOpacity>
+          </Neomorph>
+        </TouchableOpacity> */}
+
+        {/* <AddMoney_Tran update={update} Filter={Filter} /> */}
+      </SafeAreaView>
+      </ScrollView>
+    </LayoutConstant>
+   
+    </>
+  );
+}
+export interface Contain {
+  title: string,
+  value: string,
+  style?: any
+}
+
+export function Contain({ title, value, style }: Contain) {
+  return (
+    <>
+
+      <View style={{ ...style.container, ...style }}>
+        <View
+          style={{
+            ...style.item,
+            alignSelf: 'center',
+          }}>
+          {/* <View style={{ flexDirection: "row", }}> */}
+          <Text style={{
+            ...style.cardItems,
+
+          }}>
+            {title}
+          </Text>
+
+          {/* </View> */}
+
+        </View>
+
+        <View style={{ ...style.item1, }}>
+          <View style={{ flexDirection: "column" }}>
+            <Text style={{
+              color: "black",
+            }}>
+              {value}
+            </Text>
+          </View>
+
+        </View>
+
+      </View>
+
+
+    </>
+  )
+}
+const style = StyleSheet.create({
+  text: {
+    color: 'red',
+  },
+  moneyData: {
+    // marginTop: 30,
+    marginHorizontal: 1,
+    marginTop: '10%',
+  },
+  title: {
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: 'black',
+  },
+  Balance: {
+    textAlign: 'center',
+    color: '#2fbbf7',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 20,
+  },
+  textDetails: {
+    color: 'black',
+    fontWeight: 'bold',
+    fontSize: 16,
+
+    textAlign: 'center',
+  },
+  tinyLogo: {
+    width: 100
+    ,
+    paddingRight:40,
+    
+ height: 40,
+    borderBottomWidth: 2,
+    padding:0,
+    margin:-1,
+ 
+ 
+    
+    boxSizing:"border-box",
+    boxSizing:"inherit",
+    backgroundSize:"auto",
+    
+    
+    
+  },
+  razor: {
+    width: 115,
+     height: 20,
+    borderBottomWidth: 2,
+  },
+  paystack: {
+    width: 115,
+     height: 20,
+    borderBottomWidth: 2,
+  },
+  logos: {
+    width: 115,
+     height: 20,
+    borderBottomWidth: 2,
+  },
+  logos1: {
+    width: 115,
+    //  height: 20,
+    borderBottomWidth: 2,
+  },
+  mpesa: {
+    width: 115,
+    //  height: 20,
+    borderBottomWidth: 2,
+  },
+  payu: {
+    width: 115,
+     height: 20,
+     padding:5,
+    borderBottomWidth: 2,
+  },
+
+
+
+  input: {
+    color: 'black',
+    fontWeight: 'bold',
+    fontSize: 30,
+  },
+  bottomView: {
+    width: '100%',
+    height: 50,
+
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+  },
+
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignContent: 'center',
+    textAlign: 'center',
+    paddingTop: 30,
+    backgroundColor: '#307ecc',
+    padding: 16,
+  },
+  buttonStyle: {
+    width: '100%',
+    height: 40,
+    padding: 10,
+    backgroundColor: '#f5821f',
+    marginTop: 30,
+  },
+  buttonTextStyle: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  titleStyle: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 20,
+    marginTop: 10,
+  },
+
+
+  boxContainer: {
+    height: 60,
+    // alignItems: "center"
+  },
+  box: {
+    marginTop: 20,
+    borderRadius: 4,
+    backgroundColor: "#61dafb",
+    alignItems: 'center',
+    justifyContent: 'center',
+
+
+  },
+});
+const styles = StyleSheet.create({
+  container: {
+
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  item: {
+    flex: 0.25,
+    width: 150, //using fixed item width instead of flex: 0.5 works
+    // marginHorizontal: 10,
+    marginStart:30,
+    alignItems:'flex-start',
+    flexGrow: 1,
+    flexShrink: 0,
+    // padding: 10,
+
+  },
+  cardItems: {
+    color: '#FF7F50',
+    fontSize: 14,
+    // width: 95,
+    // backgroundColor: 'blue',
+    flexGrow: 1,
+    width: '30%',
+    fontWeight: 'bold',
+    // textShadowColor: 'black',
+    // textShadowOffset: { width: -1, height: 0 },
+    // textShadowRadius: perfectSize(10),
+    fontFamily: 'Rowdies-Regular',
+    // marginLeft:10,
+    alignSelf: 'flex-start',
+    textAlign: 'center'
+
+
+  },
+  cardSingleItem: {
+    color: 'black',
+    fontSize: 14,
+    // width: 95,
+    // backgroundColor: 'blue',
+    // flexGrow: 2,
+
+    // width: '30%',
+
+    // textShadowColor: 'black',
+    // textShadowOffset: { width: -1, height: 0 },
+    // textShadowRadius: perfectSize(10),
+    fontFamily: 'Rowdies-Regular',
+    marginLeft: 10,
+    alignSelf: 'flex-end',
+
+
+  },
+
+});
+
